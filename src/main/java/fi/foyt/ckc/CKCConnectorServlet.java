@@ -1,8 +1,6 @@
 package fi.foyt.ckc;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,21 +43,17 @@ public class CKCConnectorServlet extends HttpServlet {
     	throw new ServletException("Could not find class specified in 'connector-class' init parameter" );
     }
     
-    String connectorClassType = config.getInitParameter("connector-class-type");
-
-    logger.info("CKC Connector servlet connector class type: " + connectorClassType);
-
-    if ("managedBean".equals(connectorClassType)) {
-//    	connector = (CKCConnector) getManagedBean(connectorClass);
-    } else {
-    	try {
-	      connector = connectorClass.newInstance();
-      } catch (InstantiationException e) {
-      	throw new ServletException("Error occured while initializing connector", e);
-      } catch (IllegalAccessException e) {
-      	throw new ServletException("Error occured while initializing connector", e);
-      }	
-    }
+  	try {
+  		setConnector(connectorClass.newInstance());
+    } catch (InstantiationException e) {
+    	throw new ServletException("Error occured while initializing connector", e);
+    } catch (IllegalAccessException e) {
+    	throw new ServletException("Error occured while initializing connector", e);
+    }	
+  }
+  
+  protected void setConnector(CKCConnector connector) {
+  	this.connector = connector;
   }
   
   private Logger logger = Logger.getLogger(CKCConnectorServlet.class.getName());
@@ -78,14 +72,17 @@ public class CKCConnectorServlet extends HttpServlet {
     			case INIT:
     				result = connector.init(request, documentId);
     			break;
+    			case LOAD:
+    				result = connector.load(request, documentId);
+    			break;
     			case CREATE:
-    				result = connector.create(request, request.getParameter("parentId"), request.getParameter("title"), request.getParameter("content"));
-    			break;	
+    				result = connector.create(request, request.getParameter("content"));
+    			break;
     			case UPDATE:
     				result = connector.update(request, documentId, NumberUtils.createLong(request.getParameter("revisionNumber")));
     			break;
     			case SAVE:
-    				result = connector.save(request, documentId, request.getParameter("patch"));
+    				result = connector.save(request, documentId, request.getParameter("patch"), request.getParameter("properties"));
     			break;
     		}
     		
@@ -126,18 +123,6 @@ public class CKCConnectorServlet extends HttpServlet {
 		
 		return null;
 	}
-	/**
-  private Object getManagedBean(Type beanType) {
-  	javax.enterprise.inject.spi.BeanManager beanManager = null;
-  	try {
-  		beanManager = (javax.enterprise.inject.spi.BeanManager) new javax.naming.InitialContext().lookup("java:comp/BeanManager");
-    } catch (javax.naming.NamingException e) {
-    }	
-		Set<javax.enterprise.inject.spi.Bean<?>> beans = beanManager.getBeans(beanType);
-		javax.enterprise.inject.spi.Bean<?> bean = beans.iterator().next();
-		javax.enterprise.context.spi.CreationalContext<?> creationalContext = beanManager.createCreationalContext(bean);
-		return beanManager.getReference(bean, beanType, creationalContext);
-	}
-  **/
+
 	private CKCConnector connector;
 }
