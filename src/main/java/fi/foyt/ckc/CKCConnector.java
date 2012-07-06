@@ -33,7 +33,7 @@ public interface CKCConnector {
 	 * @param content content of the document
 	 * @return CreateResult
 	 */
-	public CreateResult create(HttpServletRequest request, String content);
+	public CreateResult create(HttpServletRequest request, String content, String properties);
 	
 	/**
 	 * Returns updates for the document since the revisionNumber

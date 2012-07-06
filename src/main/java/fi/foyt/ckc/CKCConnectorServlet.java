@@ -76,7 +76,7 @@ public class CKCConnectorServlet extends HttpServlet {
     				result = connector.load(request, documentId);
     			break;
     			case CREATE:
-    				result = connector.create(request, request.getParameter("content"));
+    				result = connector.create(request, request.getParameter("content"), request.getParameter("properties"));
     			break;
     			case UPDATE:
     				result = connector.update(request, documentId, NumberUtils.createLong(request.getParameter("revisionNumber")));
